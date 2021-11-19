@@ -1,4 +1,4 @@
-# Consultas para ver o AUM por faixas de idade e valor declarado investido (a consulta para ver por renda mensal seguiria o mesmo racional)
+# Consultas para ver o AUM por faixas de idade e valor declarado investido
 
 ## Por faixas de idade
 SELECT 
