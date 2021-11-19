@@ -6,10 +6,10 @@ SELECT
      SUM(aux.AUM) AS AUM
 FROM
 (SELECT
-       CustomerId,
-       CustomerApiid,
-       RegisterDate,
-       Age,
+       #c.CustomerId,
+       #c.CustomerApiid,
+       #c.RegisterDate,
+       #c.Age,
         CASE 
             WHEN c.Age >= 0 AND c.Age <= 17 THEN '0 a 17 anos'
             WHEN c.Age >= 18 AND c.Age <= 24 THEN '18 a 24 anos'
@@ -19,13 +19,13 @@ FROM
             WHEN c.Age >= 55 AND c.Age <= 64 THEN '55 a 64 anos'
             WHEN c.Age >= 65 THEN '65 anos +'
          END AS faixas_idade,
-       AmountFirstDeposit,
-       TotalDeposits,
-       TotalWithdrawals,
-       AUM,
-       ComputedRiskTolerance,
-       FinancialInvestmentsValue,
-       MonthlyIncome 
+       #c.AmountFirstDeposit,
+       #c.TotalDeposits,
+       #c.TotalWithdrawals,
+       c.AUM
+       #c.ComputedRiskTolerance,
+       #c.FinancialInvestmentsValue,
+       #c.MonthlyIncome 
 FROM 
     Customers c) AS aux
 GROUP BY
@@ -37,12 +37,12 @@ SELECT
      SUM(aux.AUM) AS AUM
 FROM
 (SELECT
-       CustomerId,
-       CustomerApiid,
-       RegisterDate,
-       Age,
+       #c.CustomerId,
+       #c.CustomerApiid,
+       #c.RegisterDate,
+       #c.Age,
         CASE 
-            WHEN c.FinancialInvestmentsValue >= 0 AND c.FinancialInvestmentsValue <= 1000 THEN 'At� R$ 1 mil'
+            WHEN c.FinancialInvestmentsValue >= 0 AND c.FinancialInvestmentsValue <= 1000 THEN 'Até R$ 1 mil'
             WHEN c.FinancialInvestmentsValue >= 1000.01 AND c.FinancialInvestmentsValue <= 5000 THEN 'R$ 1.000,01 a R$ 5.000,00'
             WHEN c.FinancialInvestmentsValue >= 5000.01 AND c.FinancialInvestmentsValue <= 20000 THEN 'R$ 5.000,01 a R$ 20.000,00'
             WHEN c.FinancialInvestmentsValue >= 20000.01 AND c.FinancialInvestmentsValue <= 50000 THEN 'R$ R$ 20.000,01 a R$ 50.000,00'
@@ -50,19 +50,79 @@ FROM
             WHEN c.FinancialInvestmentsValue >= 100000.01 AND c.FinancialInvestmentsValue <= 500000 THEN 'R$ R$ 100.000,01 a R$ 500.000,00'
             WHEN c.FinancialInvestmentsValue >= 500000.01 AND c.FinancialInvestmentsValue <= 1000000 THEN 'R$ R$ 500.000,01 a R$ 1.000.000,00'
             WHEN c.FinancialInvestmentsValue >= 1000000.01 AND c.FinancialInvestmentsValue <= 10000000 THEN 'R$ R$ R$ 1.000.000,01 a R$ 10.000.000,00'
-            WHEN c.FinancialInvestmentsValue >= 10000000.01 THEN 'Acima R$ 10 milh�es'
+            WHEN c.FinancialInvestmentsValue >= 10000000.01 THEN 'Acima R$ 10 milhões'
          END AS faixas_investimento,
-       AmountFirstDeposit,
-       TotalDeposits,
-       TotalWithdrawals,
-       AUM,
-       ComputedRiskTolerance,
-       FinancialInvestmentsValue,
-       MonthlyIncome 
+       #c.AmountFirstDeposit,
+       #c.TotalDeposits,
+       #c.TotalWithdrawals,
+       c.AUM
+       #c.ComputedRiskTolerance,
+       #c.FinancialInvestmentsValue,
+       #c.MonthlyIncome 
 FROM 
     Customers c) AS aux
 GROUP BY
      aux.faixas_investimento
+     
+## Por perfil risco
+SELECT
+     aux.perfil_risco,
+     SUM(aux.AUM)
+FROM
+(SELECT
+     #c.CustomerId,
+     #c.CustomerApiid,
+     #c.RegisterDate,
+     #c.Age,
+     CASE 
+         WHEN c.ComputedRiskTolerance >= 0 AND c.ComputedRiskTolerance <= 5.5 THEN 'Conservador (0-5)'
+         WHEN c.ComputedRiskTolerance > 5.5 AND c.ComputedRiskTolerance <= 25.5 THEN 'Moderado (6-25)'
+         ELSE 'Arrojado (26-100)'
+     END AS perfil_risco,
+     #c.AmountFirstDeposit,
+     #c.TotalDeposits,
+     #c.TotalWithdrawals,
+     c.AUM
+     #c.ComputedRiskTolerance,
+     #c.FinancialInvestmentsValue,
+     #c.MonthlyIncome 
+FROM
+    Customers c ) AS aux
+ GROUP BY 
+    aux.perfil_risco
+
+    
+## Por renda mensal declarada
+SELECT
+     aux.faixas_renda,
+     SUM(aux.AUM)
+FROM
+(SELECT
+     #c.CustomerId,
+     #c.CustomerApiid,
+     #c.RegisterDate,
+     #c.Age,
+     CASE 
+         WHEN c.MonthlyIncome <= 1000 THEN 'Até R$ 1 mil'
+         WHEN c.MonthlyIncome > 1000 AND c.MonthlyIncome <= 3000 THEN 'R$ 1.000,01 a R$ 3.000,00'
+         WHEN c.MonthlyIncome > 3000 AND c.MonthlyIncome <= 5000 THEN 'R$ 3.000,01 a R$ 5.000,00'
+         WHEN c.MonthlyIncome > 5000 AND c.MonthlyIncome <= 10000 THEN 'R$ 5.000,01 a R$ 10.000,00'
+         WHEN c.MonthlyIncome > 10000 AND c.MonthlyIncome <= 200000 THEN 'R$ 10.000,01 a R$ 20.000,00'
+         WHEN c.MonthlyIncome > 20000 AND c.MonthlyIncome <= 500000 THEN 'R$ 20.000,01 a R$ 50.000,00'
+         WHEN c.MonthlyIncome > 50000 AND c.MonthlyIncome <= 1000000 THEN 'R$ 50.000,01 a R$ 100.000,00'
+         ELSE 'Acima R$ 100 mil'
+     END AS faixas_renda,
+     #c.AmountFirstDeposit,
+     #c.TotalDeposits,
+     #c.TotalWithdrawals,
+     c.AUM
+     #c.ComputedRiskTolerance,
+     #c.FinancialInvestmentsValue,
+     #c.MonthlyIncome 
+FROM
+    Customers c ) AS aux
+ GROUP BY 
+    aux.faixas_renda
      
 # Perfi dos clientes que entraram mais recentemente (2021)
      
@@ -80,3 +140,120 @@ FROM
 WHERE 
     c.RegisterDate >= '2021-01-01 00:00:00' AND c.RegisterDate <= '2021-12-31 23:59:59'
     
+# Quantos depósitos cada cliente faz em média por período de tempo? 
+SELECT
+     aux.CustomerId,
+     SUM(aux.contagem_dep)/7 AS media_mensal_dep # são 7 meses na tabela Transactions
+FROM
+    (SELECT # esse SELECT interno me dá o número de depósitos de cada cliente. Para ver por mês, descomentar 3ª linha
+     t.CustomerId,
+     /*MONTHNAME(t.OperatedAt) AS mes_operacao,*/
+     CASE 
+         WHEN t.Direction =10 THEN 1 
+         ELSE 0 
+     END AS contagem_dep
+FROM
+    Transactions t) AS aux
+GROUP BY
+     aux.CustomerId
+     
+  # Quantos depósitos são feitos, em média, por mês?
+
+
+# Consulta auxiliar Tableau - criação das faixas de renda e risco
+     
+SELECT
+     c.CustomerId,
+     c.AUM,
+     c.ComputedRiskTolerance, 
+     CASE 
+         WHEN c.ComputedRiskTolerance >= 0 AND c.ComputedRiskTolerance <= 5.5 THEN 'Conservador (0-5)'
+         WHEN c.ComputedRiskTolerance > 5.5 AND c.ComputedRiskTolerance <= 25.5 THEN 'Moderado (6-25)'
+         ELSE 'Arrojado (26-100)'
+     END AS perfil_risco,
+     c.MonthlyIncome,
+     CASE 
+         WHEN c.MonthlyIncome <= 1000 THEN 'Até R$ 1 mil'
+         WHEN c.MonthlyIncome > 1000 AND c.MonthlyIncome <= 3000 THEN 'R$ 1.000,01 a R$ 3.000,00'
+         WHEN c.MonthlyIncome > 3000 AND c.MonthlyIncome <= 5000 THEN 'R$ 3.000,01 a R$ 5.000,00'
+         WHEN c.MonthlyIncome > 5000 AND c.MonthlyIncome <= 10000 THEN 'R$ 5.000,01 a R$ 10.000,00'
+         WHEN c.MonthlyIncome > 10000 AND c.MonthlyIncome <= 200000 THEN 'R$ 10.000,01 a R$ 20.000,00'
+         WHEN c.MonthlyIncome > 20000 AND c.MonthlyIncome <= 500000 THEN 'R$ 20.000,01 a R$ 50.000,00'
+         WHEN c.MonthlyIncome > 50000 AND c.MonthlyIncome <= 1000000 THEN 'R$ 50.000,01 a R$ 100.000,00'
+         ELSE 'Acima R$ 100 mil'
+     END AS faixas_renda,
+     CASE 
+         WHEN c.FinancialInvestmentsValue <= 1000 THEN 'Até R$ 1 mil'
+         WHEN c.FinancialInvestmentsValue > 1000 AND c.FinancialInvestmentsValue <= 3000 THEN 'R$ 1.000,01 a R$ 5.000,00'
+         WHEN c.FinancialInvestmentsValue > 3000 AND c.FinancialInvestmentsValue <= 5000 THEN 'R$ 5.000,01 a R$ 20.000,00'
+         WHEN c.FinancialInvestmentsValue > 5000 AND c.FinancialInvestmentsValue <= 10000 THEN 'R$ 20.000,01 a R$ 50.000,00'
+         WHEN c.FinancialInvestmentsValue > 10000 AND c.FinancialInvestmentsValue <= 200000 THEN 'R$ 50.000,01 a R$ 100.000,00'
+         WHEN c.FinancialInvestmentsValue > 20000 AND c.FinancialInvestmentsValue <= 500000 THEN 'R$ 100.000,01 a R$ 500.000,00'
+         WHEN c.FinancialInvestmentsValue > 50000 AND c.FinancialInvestmentsValue <= 1000000 THEN 'R$ 500.000,01 a R$ 1.000.000,00'
+         WHEN c.FinancialInvestmentsValue > 1000000 AND c.FinancialInvestmentsValue <= 10000000 THEN 'R$ 1.000.000,01 a R$ 10.000.000,00'
+         ELSE 'Acima R$ 10 milhões'
+     END AS faixas_investimento_declarado,
+     CASE 
+         WHEN c.Age < 18 THEN '0 a 17 anos'
+         WHEN c.Age >= 18 AND c.Age <= 24 THEN '18 a 24 anos'
+         WHEN c.Age > 24 AND c.Age <= 34 THEN '25 a 34 anos'
+         WHEN c.Age > 34 AND c.Age <= 44 THEN '35 a 44 anos'
+         WHEN c.Age > 44 AND c.Age <= 54 THEN '45 a 54 anos'
+         WHEN c.Age > 54 AND c.Age <= 64 THEN '55 a 64 anos'
+         ELSE '65 anos +'
+     END AS faixas_idade
+FROM
+    Customers c
+
+# Cruzando as bases (olhando apenas 2021 pois é o que faz sentido dado que não existem transações/eventos para datas anteriores)
+    
+SELECT
+     e.CustomerApiid,
+     t.CustomerId,
+     c.AUM,
+     c.AmountFirstDeposit,
+     c.RegisterDate,
+     c.TotalDeposits, /*não serve para analisar depósitos e resgates ao longo do tempo, dado que estes registros parecem ser da data mais atual disponível apenas, já que cada cliente só aparece 1x na tabela Custumers (não faria sentido considerar que o valor desse campo seja referente à data do campo RegisterDate, pois, no dia e hora em que o cliente fez o cadastro - abertura da conta -, não teria como ele já ter feito algum depósito e muito menos resgate. Ainda, se fosse o caso do campo RegisterDate ser a data de atualização do cadastro do cliente, este deveria aparecer mais de 1x na base.*/
+     c.TotalWithdrawals, /*idem ao comentário acima*/
+     c.MonthlyIncome,
+     c.FinancialInvestmentsValue,
+     c.Age,
+     c.ComputedRiskTolerance,
+     CAST(e.EventDate AS DATE) AS dt_EventDate,
+     e.Platform,
+     t.Id AS Id_transacao,
+     t.Direction,
+     t.Amount,
+     t.OperatedAt
+FROM
+    Customers c JOIN
+    Events e ON c.CustomerApiid = e.CustomerApiid JOIN 
+    Transactions t ON t.CustomerId = c.CustomerId 
+    
+# Tendo em vista os clientes que retiram o dinheiro da Warren, quantas pessoas zeram suasquantias na Warren? Existe um público dominante?
+    
+SELECT
+      c.CustomerId,
+      c.RegisterDate,
+      CAST(MAX(t.OperatedAt) AS DATE) AS dt_zeragem, #possivel data zeragem seria a ultima data em que o clienyte fez alguma transação na Warren
+      c.TotalWithdrawals,
+      c.AUM,
+      c.Age,
+      c.AmountFirstDeposit,
+      c.FinancialInvestmentsValue,
+      c.MonthlyIncome,
+      c.ComputedRiskTolerance
+FROM
+    Customers c LEFT JOIN
+    Transactions t ON t.CustomerId = c.CustomerId 
+WHERE
+    c.AUM = 0 AND c.TotalWithdrawals > 0 #adicionando o "and" para não correr risco de pegar alguem que tem AUM zero porque não aportou nada ainda
+GROUP BY
+    c.CustomerId,
+    c.TotalWithdrawals,
+    c.AUM,
+    c.Age,
+    c.AmountFirstDeposit,
+    c.FinancialInvestmentsValue,
+    c.MonthlyIncome,
+    c.ComputedRiskTolerance
